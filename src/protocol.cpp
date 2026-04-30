@@ -13,8 +13,8 @@
 //   STR <0|1> [period_ms]               — стрим состояния вкл/выкл
 //   SAV                                 — записать в EEPROM (принудительно)
 //   RST [<axis>]                        — сброс одной оси либо всех
-//   MIN <axis>                          — текущее raw → min
-//   MAX <axis>                          — текущее raw → max
+//   MIN <axis> [<value>]                — min: текущее raw, либо явно value
+//   MAX <axis> [<value>]                — max: текущее raw, либо явно value
 //   DZ  <axis> <low> <high>             — мёртвые зоны
 //   INV <axis> <0|1>                    — инверсия
 //   FLT <axis> <type:0..2> <strength>   — фильтр (0=none,1=ema,2=sma)
@@ -196,13 +196,25 @@ static void handle_cmd(char* cmd, char* rest, Calibration& calib,
     AxisCalib& a = calib.axes[axis];
 
     if (strcmp(cmd, "MIN") == 0) {
-        a.rawMin = rt[axis].rawFiltered;
+        // MIN <axis>           — взять текущее raw как min
+        // MIN <axis> <value>   — задать min явно (для ручной правки из UI)
+        char* val = next_tok(&rest);
+        if (val && *val) {
+            a.rawMin = atol(val);
+        } else {
+            a.rawMin = rt[axis].rawFiltered;
+        }
         calibration_save(calib);
         send_ok(cmd);
         return;
     }
     if (strcmp(cmd, "MAX") == 0) {
-        a.rawMax = rt[axis].rawFiltered;
+        char* val = next_tok(&rest);
+        if (val && *val) {
+            a.rawMax = atol(val);
+        } else {
+            a.rawMax = rt[axis].rawFiltered;
+        }
         calibration_save(calib);
         send_ok(cmd);
         return;
