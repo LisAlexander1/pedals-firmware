@@ -8,6 +8,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write   # нужно softprops/action-gh-release для создания релиза
+
 jobs:
   build:
     name: Build (Arduino Pro Micro)
